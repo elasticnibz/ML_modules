@@ -5,7 +5,7 @@ import statsmodels.api as sm
 from scipy.stats._continuous_distns import chi2
 from sklearn.metrics import log_loss, auc, roc_curve, accuracy_score, silhouette_score, calinski_harabasz_score
 import matplotlib.pyplot as plt
-from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.preprocessing import LabelEncoder, StandardScaler, OneHotEncoder
 from keras.models import Sequential
 from keras.layers import Dense, Embedding, Flatten, Activation, Dropout
 import string
@@ -15,6 +15,10 @@ from nltk.stem import WordNetLemmatizer, PorterStemmer
 from nltk import pos_tag
 from scipy.spatial.distance import cosine, cdist, pdist
 from sklearn.cluster import KMeans, AgglomerativeClustering
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
+from sklearn.pipeline import FeatureUnion, Pipeline
+from sklearn.compose import ColumnTransformer
+from sklearn.base import BaseEstimator, TransformerMixin
 
 # Categorical embeddings using keras
 class CategoricalEmbeddings:
@@ -61,3 +65,40 @@ class CategoricalEmbeddings:
         self.model.compile(loss="mean_squared_error", optimizer="adam", metrics=["accuracy"])
         self.model.fit(x=self.labelEncoder.transform(data[self.feature].values.reshape(-1,1)), y=self.scaler.transform(data[featureList].values.reshape(-1,len(featureList))), epochs=self.epochs, batch_size=batchSize)
         return self
+
+# Selecting heterogenous features for ML pipelines
+# Example:
+# Pipeline([("selector", TextFeatureSelector(column="words")), ("vectorizer", CountVectorizer())])
+class NumFeatureSelector(BaseEstimator, TransformerMixin):
+    def __init__(self, column):
+        self.key = column
+    def fit(self, X, y=None):
+        return self
+    def transform(self, X):
+        return X[[self.key]]
+    
+class TextFeatureSelector(BaseEstimator, TransformerMixin):
+    def __init__(self, column):
+        self.key = column
+    def fit(self, X, y=None):
+        return self
+    def transform(self, X):
+        return X[self.key]
+
+class CatFeatureSelector(BaseEstimator, TransformerMixin):
+    def __init__(self, column):
+        self.key = column
+        self.labelencoder = LabelEncoder()
+        self.onehotencoder = OneHotEncoder()
+    def fit(self, X, y=None):
+        X1 = X[self.key].reset_index().drop(["index"], axis=1)
+        X2 = pd.Series(self.labelencoder.fit_transform(X1))
+        X_df = pd.DataFrame(X1,X2).reset_index().rename(columns={"index": "code"})
+        self.onehotencoder.fit(X_df)
+        return self
+    def transform(self, X):
+        X1 = X[self.key].reset_index().drop(["index"], axis=1)
+        X2 = pd.Series(self.labelencoder.transform(X1))
+        X_df = pd.DataFrame(X1,X2).reset_index().rename(columns={"index": "code"})
+        arr = self.onehotencoder.transform(X_df).toarray()
+        return arr
