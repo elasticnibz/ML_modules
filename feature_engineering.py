@@ -68,7 +68,9 @@ class CategoricalEmbeddings:
 
 # Selecting heterogenous features for ML pipelines
 # Example:
-# Pipeline([("selector", TextFeatureSelector(column="words")), ("vectorizer", CountVectorizer())])
+# p1 = Pipeline([("selector", TextFeatureSelector(column="words")), ("vectorizer", CountVectorizer())])
+# p2 = Pipeline([("selector", NumFeatureSelector(column="numbers")), ("scaler", StandardScaler())])
+# features = FeatureUnion([("words", p1), ("numbers", p2)])
 class NumFeatureSelector(BaseEstimator, TransformerMixin):
     def __init__(self, column):
         self.key = column
