@@ -1,3 +1,21 @@
+# Importing generic libraries
+import pandas as pd
+import numpy as np
+import statsmodels.api as sm
+from scipy.stats._continuous_distns import chi2
+from sklearn.metrics import log_loss, auc, roc_curve, accuracy_score, silhouette_score, calinski_harabasz_score
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+from keras.models import Sequential
+from keras.layers import Dense, Embedding, Flatten, Activation, Dropout
+import string
+import nltk
+from nltk.corpus import stopwords, wordnet
+from nltk.stem import WordNetLemmatizer, PorterStemmer
+from nltk import pos_tag
+from scipy.spatial.distance import cosine, cdist, pdist
+from sklearn.cluster import KMeans, AgglomerativeClustering
+
 # Categorical embeddings using keras
 class CategoricalEmbeddings:
     def __init__(self, layers=[(50, "relu"), (15, "relu")], vecSize=None, epoch=50, batchSize=4):
